@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFR-MD AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar */
+        #chatBox::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chatBox::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chatBox::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        #chatBox::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+        
+        /* Message animations */
+        .message-animation {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background-color: #888;
+            border-radius: 50%;
+            animation: typing 1.5s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 100% { transform: scale(0.8); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* Contact button hover effect */
+        .contact-btn {
+            transition: all 0.3s ease;
+        }
+        .contact-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen flex items-center justify-center p-4">
+    <!-- Main container with subtle shadow and rounded corners -->
+    <div class="w-full max-w-xl bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-200">
+        <!-- Header with gradient background -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                    <h1 class="text-xl font-bold text-white">SFR-MD AI Assistant</h1>
+                </div>
+                <div id="clock" class="text-white font-medium bg-blue-900 bg-opacity-30 px-3 py-1 rounded-full text-sm"></div>
+            </div>
+            
+            <!-- Contact information -->
+            <div class="mt-3 flex gap-3 justify-end">
+                <a href="https://wa.me/94766635214" target="_blank" class="contact-btn flex items-center bg-green-500 text-white text-xs px-3 py-1 rounded-full">
+                    <i class="fab fa-whatsapp mr-1"></i>
+                    +94 766635214
+                </a>
+                <a href="mailto:shafeercassim748@gmail.com" class="contact-btn flex items-center bg-blue-400 text-white text-xs px-3 py-1 rounded-full">
+                    <i class="fas fa-envelope mr-1"></i>
+                    shafeercassim748@gmail.com
+                </a>
+            </div>
+        </div>
+        
+        <!-- System message -->
+        <div class="bg-gray-50 p-3 border-b border-gray-200">
+            <p class="text-sm text-gray-600 flex items-center">
+                <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                <span>Welcome to SFR-MD AI Assistant. How can I help you today?</span>
+            </p>
+            <p id="status" class="text-xs text-gray-500 mt-1 ml-6">Online | <span id="date"></span></p>
+        </div>
+        
+        <!-- Chat container with improved styling -->
+        <div id="chatBox" class="h-80 overflow-y-auto p-4 bg-white"></div>
+        
+        <!-- User input area with enhanced design -->
+        <div class="border-t border-gray-200 p-3 bg-gray-50">
+            <div id="typing" class="ml-2 mb-2 hidden">
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="text-xs text-gray-500 ml-2">AI is thinking...</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <input id="userInput" type="text" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" placeholder="Type your message here..." autofocus>
+                <button id="clearBtn" class="bg-gray-200 text-gray-600 p-3 rounded-lg hover:bg-gray-300 focus:outline-none transition-colors" title="Clear chat">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button id="sendBtn" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 focus:outline-none transition-colors flex items-center justify-center">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Footer with contact info -->
+        <div class="bg-gray-100 p-2 border-t border-gray-200">
+            <div class="flex justify-between items-center text-xs text-gray-500">
+                <span>© 2025 SFR-MD</span>
+                <div class="flex gap-3">
+                    <a href="https://wa.me/94766635214" target="_blank" class="hover:text-green-600 flex items-center">
+                        <i class="fab fa-whatsapp mr-1"></i>WhatsApp
+                    </a>
+                    <a href="mailto:shafeercassim748@gmail.com" class="hover:text-blue-600 flex items-center">
+                        <i class="fas fa-envelope mr-1"></i>Email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <script>
+        // IIFE for scope isolation and organization
+        (function() {
+            // DOM elements
+            const elements = {
+                chatBox: document.getElementById('chatBox'),
+                userInput: document.getElementById('userInput'),
+                sendBtn: document.getElementById('sendBtn'),
+                clearBtn: document.getElementById('clearBtn'),
+                clock: document.getElementById('clock'),
+                status: document.getElementById('status'),
+                date: document.getElementById('date'),
+                typing: document.getElementById('typing')
+            };
+            
+            // Initialize app
+            function init() {
+                setupEventListeners();
+                updateDateTime();
+                setInterval(updateDateTime, 1000);
+                setWelcomeMessage();
+                elements.userInput.focus();
+            }
+            
+            // Setup event listeners
+            function setupEventListeners() {
+                elements.sendBtn.addEventListener('click', handleSendMessage);
+                elements.userInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSendMessage();
+                    }
+                });
+                elements.clearBtn.addEventListener('click', clearChat);
+            }
+            
+            // Update date and time display
+            function updateDateTime() {
+                const now = new Date();
+                // Format time as HH:MM:SS AM/PM
+                elements.clock.textContent = now.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit', 
+                    second: '2-digit'
+                });
+                
+                // Format date as Day, Month Date, Year
+                elements.date.textContent = now.toLocaleDateString([], {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+            
+            // Welcome message
+            function setWelcomeMessage() {
+                setTimeout(() => {
+                    appendMessage("Hello! I'm your AI assistant. How can I help you today? Feel free to reach out via WhatsApp or Email for additional support.", 'ai');
+                }, 500);
+            }
+            
+            // Handle sending messages
+            function handleSendMessage() {
+                const userMessage = elements.userInput.value.trim();
+                if (userMessage === '') return;
+                
+                // Send user message
+                appendMessage(userMessage, 'user');
+                elements.userInput.value = '';
+                elements.userInput.focus();
+                
+                // Show typing indicator
+                showTypingIndicator(true);
+                
+                // Get AI response with simulated typing delay
+                const typingDelay = Math.min(1000 + userMessage.length * 20, 3000);
+                
+                getAIResponse(userMessage)
+                    .then(aiResponse => {
+                        setTimeout(() => {
+                            showTypingIndicator(false);
+                            appendMessage(aiResponse, 'ai');
+                        }, typingDelay);
+                    })
+                    .catch(error => {
+                        setTimeout(() => {
+                            showTypingIndicator(false);
+                            appendMessage("Sorry, there was an error connecting to the AI. Please try again or contact support via WhatsApp or Email.", 'ai');
+                            console.error("AI Error:", error);
+                        }, 1000);
+                    });
+            }
+            
+            // Show/hide typing indicator
+            function showTypingIndicator(show) {
+                elements.typing.classList.toggle('hidden', !show);
+            }
+            
+            // Format timestamp
+            function formatTimestamp(date) {
+                return date.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            
+            // Append message to chat
+            function appendMessage(message, sender) {
+                const messageContainer = document.createElement('div');
+                messageContainer.classList.add('mb-4', 'message-animation');
+                
+                const now = new Date();
+                const formattedTime = formatTimestamp(now);
+                
+                if (sender === 'user') {
+                    messageContainer.innerHTML = `
+                        <div class="flex justify-end">
+                            <div class="max-w-[80%] flex flex-col">
+                                <div class="bg-blue-600 text-white px-4 py-2 rounded-lg rounded-tr-none shadow">
+                                    ${escapeHTML(message)}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 self-end flex items-center">
+                                    ${formattedTime}
+                                    <i class="fas fa-check-double ml-1 text-blue-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (sender === 'ai') {
+                    messageContainer.innerHTML = `
+                        <div class="flex justify-start">
+                            <div class="max-w-[80%] flex flex-col">
+                                <div class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg rounded-tl-none shadow">
+                                    ${escapeHTML(message)}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 flex items-center">
+                                    <i class="fas fa-robot mr-1 text-blue-500"></i>
+                                    ${formattedTime}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                elements.chatBox.appendChild(messageContainer);
+                // Smooth scroll to bottom
+                elements.chatBox.scrollTo({
+                    top: elements.chatBox.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+            
+            // Clear chat history
+            function clearChat() {
+                if (confirm("Are you sure you want to clear the chat history?")) {
+                    elements.chatBox.innerHTML = '';
+                    setWelcomeMessage();
+                }
+            }
+            
+            // Security: Escape HTML for user input to prevent XSS
+            function escapeHTML(text) {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;')
+                    .replace(/\n/g, '<br>');
+            }
+
+            // Function to fetch the AI response (same as before)
+            async function getAIResponse(userMessage) {
+                // IMPORTANT: Replace with your actual API Key or use a backend proxy
+                const API_KEY = 'AIzaSyA4gtX2FnhSJWpjk3tniywnjpvsuSgK5CY'; // <-- SECURITY RISK: Exposing key client-side
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            "contents": [{
+                                "parts": [{"text": userMessage}]
+                            }]
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        console.error("API Error Response:", errorBody);
+                        throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.candidates && data.candidates.length > 0 &&
+                        data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0 &&
+                        data.candidates[0].content.parts[0].text) {
+                        return data.candidates[0].content.parts[0].text;
+                    } else if (data.promptFeedback && data.promptFeedback.blockReason) {
+                        console.warn("AI response blocked:", data.promptFeedback.blockReason);
+                        return `Response blocked due to: ${data.promptFeedback.blockReason}. Please rephrase your request.`;
+                    } else {
+                        console.error("Unexpected API response structure:", data);
+                        throw new Error("Received an unexpected response format from the AI.");
+                    }
+                } catch (error) {
+                    console.error("Fetch or processing error:", error);
+                    throw error;
+                }
+            }
+            
+            // Start the application
+            init();
+        })();
+    </script>
+</body>
+</html>
